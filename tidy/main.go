@@ -37,31 +37,9 @@ LINES:
 		}
 		var hiName string
 		var hiArgs = make(map[string]string, 0)
-		// var longestWord int
 		fields := strings.Fields(line)
-		for i, word := range fields {
-			// if longestWord < len(word) {
-			// 	longestWord = len(word)
-			// }
-			switch {
-			case i == 0 && !strings.HasPrefix(word, "hi"):
-				skip(line)
-				continue LINES
-			case i == 1:
-				for _, c := range HighlightCommands {
-					if c == word {
-						// commandName = word
-						skip(line)
-						continue LINES
-					}
-				}
-				// Highlight!
-			case i > 1:
-				break
-			}
-		}
-		if len(fields) < 3 {
-			fmt.Fprintf(os.Stderr, "Ignoring line %d: less than 3 words\n", lineNr)
+		if len(fields) < 3 || !isHighlight(fields) {
+			// fmt.Fprintf(os.Stderr, "Ignoring line %d: not an highlight group definition\n", lineNr)
 			skip(line)
 			continue LINES
 		}
@@ -69,14 +47,14 @@ LINES:
 		for _, field := range fields[2:] {
 			f := strings.Split(field, "=")
 			if len(f) != 2 {
-				fmt.Fprintf(os.Stderr, "Ignoring line %d: expecting key/value pair, got '%s'\n", lineNr, field)
+				// fmt.Fprintf(os.Stderr, "Ignoring line %d: expecting key/value pair, got '%s'\n", lineNr, field)
 				skip(line)
 				continue
 			}
 			hiArgs[f[0]] = f[1]
 		}
-		PrintHighlight(hiName, hiArgs)
-		fmt.Println() // End of line
+		hi := HighlightGroup(hiName, hiArgs)
+		fmt.Println(hi) // End of line
 	}
 	// :Tabularize / \+\zs/l0l1
 	if err := scanner.Err(); err != nil {
@@ -85,8 +63,8 @@ LINES:
 	return nil
 }
 
-func PrintHighlight(name string, args map[string]string) {
-	fmt.Printf("highlight %s", name)
+func HighlightGroup(name string, args map[string]string) string {
+	str := fmt.Sprintf("highlight %s", name)
 	for _, group := range HighlightGroups {
 		value := "NONE"
 		for k, v := range args {
@@ -95,8 +73,26 @@ func PrintHighlight(name string, args map[string]string) {
 				break
 			}
 		}
-		fmt.Printf("%s%s=%s", Separator, group, value)
+		str += fmt.Sprintf("%s%s=%s", Separator, group, value)
 	}
+	return str
+}
+
+func isHighlight(fields []string) bool {
+	for i, word := range fields {
+		switch {
+		case i == 0 && !strings.HasPrefix(word, "hi"):
+			return false
+		case i == 1: // i > 1
+			for _, c := range HighlightCommands {
+				if c == word {
+					return false
+				}
+			}
+			break
+		}
+	}
+	return true
 }
 
 func skip(line string) {
