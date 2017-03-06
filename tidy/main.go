@@ -22,13 +22,13 @@ func Highlight(path string) error {
 	scanFileText(path, func(line string) error {
 		lineNr++
 		if len(strings.TrimLeft(line, " ")) == 0 {
-			skip(line)
+			fmt.Println(line) // Empty line
 			return nil
 		}
 		fields := strings.Fields(line)
 		if len(fields) < 3 || !isHighlightDefinition(fields) {
 			// fmt.Fprintf(os.Stderr, "Ignoring line %d: not an highlight group definition\n", lineNr)
-			skip(line)
+			fmt.Println(line) // Not `hi[light] {group-name} ...`
 			return nil
 		}
 		args := make(map[string]string, 0)
@@ -80,8 +80,4 @@ func isHighlightDefinition(fields []string) bool {
 		}
 	}
 	return true
-}
-
-func skip(line string) {
-	fmt.Println(line)
 }
