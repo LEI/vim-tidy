@@ -19,44 +19,52 @@ var Separator = " "
 // Highlight reads a file and reformats `highlight` commands
 // Does not handle vim line-continuation
 func Highlight(path string) error {
-	fi, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer fi.Close()
-
 	var lineNr int = 0
-	scanner := bufio.NewScanner(fi)
-LINES:
-	for scanner.Scan() {
+
+
+	scanFile(path, func(line string) error {
 		lineNr++
-		line := scanner.Text()
 		if len(strings.TrimLeft(line, " ")) == 0 {
 			skip(line)
-			continue LINES
+			return nil
 		}
 		var hiName string
 		var hiArgs = make(map[string]string, 0)
 		fields := strings.Fields(line)
-		if len(fields) < 3 || !isHighlight(fields) {
+		if len(fields) < 3 || !isHighlightDefinition(fields) {
 			// fmt.Fprintf(os.Stderr, "Ignoring line %d: not an highlight group definition\n", lineNr)
 			skip(line)
-			continue LINES
+			return nil
 		}
 		hiName = fields[1]
 		for _, field := range fields[2:] {
 			f := strings.Split(field, "=")
 			if len(f) != 2 {
-				// fmt.Fprintf(os.Stderr, "Ignoring line %d: expecting key/value pair, got '%s'\n", lineNr, field)
-				skip(line)
-				continue
+				return fmt.Errorf("Invalid line %d in file %s: expecting key/value pair, got '%s'\n", lineNr, path, field)
 			}
 			hiArgs[f[0]] = f[1]
 		}
 		hi := HighlightGroup(hiName, hiArgs)
 		fmt.Println(hi) // End of line
-	}
+		return nil
+	})
 	// :Tabularize / \+\zs/l0l1
+	return nil
+}
+
+func scanFile(path string, f func(string) error) error {
+	fi, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer fi.Close()
+	scanner := bufio.NewScanner(fi)
+	for scanner.Scan() {
+		err := f(scanner.Text())
+		if err != nil {
+			return err
+		}
+	}
 	if err := scanner.Err(); err != nil {
 		return err
 	}
@@ -81,7 +89,7 @@ func HighlightGroup(name string, args map[string]string) string {
 	return str
 }
 
-func isHighlight(fields []string) bool {
+func isHighlightDefinition(fields []string) bool {
 	for i, word := range fields {
 		switch {
 		case i == 0 && !strings.HasPrefix(word, "hi"):
