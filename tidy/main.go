@@ -31,15 +31,18 @@ LINES:
 	for scanner.Scan() {
 		lineNr++
 		line := scanner.Text()
-		// l = strings.TrimLeft(line, " ")
-		if len(line) == 0 {
+		if len(strings.TrimLeft(line, " ")) == 0 {
 			skip(line)
 			continue LINES
 		}
 		var hiName string
 		var hiArgs = make(map[string]string, 0)
+		// var longestWord int
 		fields := strings.Fields(line)
 		for i, word := range fields {
+			// if longestWord < len(word) {
+			// 	longestWord = len(word)
+			// }
 			switch {
 			case i == 0 && !strings.HasPrefix(word, "hi"):
 				skip(line)
@@ -53,8 +56,7 @@ LINES:
 					}
 				}
 				// Highlight!
-			}
-			if i > 1 {
+			case i > 1:
 				break
 			}
 		}
@@ -73,18 +75,7 @@ LINES:
 			}
 			hiArgs[f[0]] = f[1]
 		}
-		fmt.Printf("highlight %s", hiName)
-		for _, group := range HighlightGroups {
-			value := "NONE"
-			for k, v := range hiArgs {
-				if k == group {
-					value = v
-					break
-				}
-			}
-			// hi = append(hi, group+"="+value)
-			fmt.Printf("%s%s=%s", Separator, group, value)
-		}
+		PrintHighlight(hiName, hiArgs)
 		fmt.Println() // End of line
 	}
 	// :Tabularize / \+\zs/l0l1
@@ -92,6 +83,20 @@ LINES:
 		return err
 	}
 	return nil
+}
+
+func PrintHighlight(name string, args map[string]string) {
+	fmt.Printf("highlight %s", name)
+	for _, group := range HighlightGroups {
+		value := "NONE"
+		for k, v := range args {
+			if k == group {
+				value = v
+				break
+			}
+		}
+		fmt.Printf("%s%s=%s", Separator, group, value)
+	}
 }
 
 func skip(line string) {
