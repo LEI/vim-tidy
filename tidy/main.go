@@ -1,9 +1,8 @@
 package tidy
 
 import (
-	"bufio"
 	"fmt"
-	"os"
+	// "os"
 	"strings"
 )
 
@@ -20,54 +19,31 @@ var Separator = " "
 // Does not handle vim line-continuation
 func Highlight(path string) error {
 	var lineNr int = 0
-
-
-	scanFile(path, func(line string) error {
+	scanFileText(path, func(line string) error {
 		lineNr++
 		if len(strings.TrimLeft(line, " ")) == 0 {
 			skip(line)
 			return nil
 		}
-		var hiName string
-		var hiArgs = make(map[string]string, 0)
 		fields := strings.Fields(line)
 		if len(fields) < 3 || !isHighlightDefinition(fields) {
 			// fmt.Fprintf(os.Stderr, "Ignoring line %d: not an highlight group definition\n", lineNr)
 			skip(line)
 			return nil
 		}
-		hiName = fields[1]
+		args := make(map[string]string, 0)
 		for _, field := range fields[2:] {
 			f := strings.Split(field, "=")
 			if len(f) != 2 {
 				return fmt.Errorf("Invalid line %d in file %s: expecting key/value pair, got '%s'\n", lineNr, path, field)
 			}
-			hiArgs[f[0]] = f[1]
+			args[f[0]] = f[1]
 		}
-		hi := HighlightGroup(hiName, hiArgs)
+		hi := HighlightGroup(fields[1], args)
 		fmt.Println(hi) // End of line
 		return nil
 	})
 	// :Tabularize / \+\zs/l0l1
-	return nil
-}
-
-func scanFile(path string, f func(string) error) error {
-	fi, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer fi.Close()
-	scanner := bufio.NewScanner(fi)
-	for scanner.Scan() {
-		err := f(scanner.Text())
-		if err != nil {
-			return err
-		}
-	}
-	if err := scanner.Err(); err != nil {
-		return err
-	}
 	return nil
 }
 
