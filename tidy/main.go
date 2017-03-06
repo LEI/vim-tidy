@@ -16,8 +16,8 @@ var Separator = " "
 
 // :hi[ghlight] {group-name} {key}={arg}
 
-// Highlight reads a file and reformat `highlight` commands
-// Does not handle line continuation
+// Highlight reads a file and reformats `highlight` commands
+// Does not handle vim line-continuation
 func Highlight(path string) error {
 	fi, err := os.Open(path)
 	if err != nil {
@@ -63,6 +63,9 @@ LINES:
 	return nil
 }
 
+// HighlightGroup takes a name and a list of key value pairs
+// and returns a sorted :highlight command
+// Missing keys will be set to `NONE`
 func HighlightGroup(name string, args map[string]string) string {
 	str := fmt.Sprintf("highlight %s", name)
 	for _, group := range HighlightGroups {
