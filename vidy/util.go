@@ -1,4 +1,4 @@
-package tidy
+package vidy
 
 import (
 	"bufio"

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/LEI/vim-tidy/tidy"
+	"github.com/LEI/vim-tidy/vidy"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -15,14 +15,14 @@ var cfgFile string
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
 	Use:   "vim-tidy [flags] <file>",
-	Short: "",
+	Short: "Format highlight groups",
 	Long:  ``,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
 			return fmt.Errorf("Missing file path")
 		}
 		for _, a := range args {
-			err := tidy.Highlight(a)
+			err := vidy.Highlight(a)
 			if err != nil {
 				return err
 			}
