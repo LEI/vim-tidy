@@ -99,7 +99,6 @@ func Highlight(path string) error {
 			str += strings.Repeat(" ", pad)
 		}
 		fmt.Println(str)
-		
 	}
 	// :Tabularize / \+\zs/l0l1
 	return nil
