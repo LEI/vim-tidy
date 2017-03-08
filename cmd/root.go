@@ -43,7 +43,8 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	// RootCmd.PersistentFlags().StringVar(&outputFile, "output", "i", "Output `file`")
+	RootCmd.Flags().IntVarP(&vidy.MinIndentSize, "spaces", "s", vidy.MinIndentSize, "Minimum numbers of `spaces` between highlight properties")
+	// RootCmd.PersistentFlags().StringVar(&outputFile, "output", "o", "Output `file`")
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.vim-tidy.yaml)")
 	// RootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

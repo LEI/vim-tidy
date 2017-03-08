@@ -6,10 +6,11 @@ import (
 	"strings"
 )
 
+var HighLightCommand = "hi"
 // HighlightCommands to be ignored
 var HighlightCommands = []string{"clear", "link"}
 // HighlightGroups keys order
-var HighlightGroups = []string{"cterm", "ctermfg", "ctermbg", "gui", "guifg", "guibg"}
+var HighlightGroups = []string{"ctermfg", "ctermbg", "guifg", "guibg", "cterm", "gui"}
 // Default number of spaces
 var MinIndentSize = 1
 
@@ -89,12 +90,19 @@ func Highlight(path string) error {
 		var str string
 		for j, f := range fields {
 			str += f
+			// Stop at last field
 			if j + 1 == len(fields) {
 				break
 			}
-			pad := maxLengths[j] - len(f) + 1
-			if pad < MinIndentSize {
-				pad = MinIndentSize
+			pad := 1
+			if j > 0 {
+				pad = maxLengths[j] - len(f)
+				// fmt.Fprintf(os.Stderr, "pad: %d - %d + 1 = %d\n", maxLengths[j], len(f), pad)
+				if pad < MinIndentSize {
+					pad = MinIndentSize
+				} else {
+					pad += MinIndentSize
+				}
 			}
 			str += strings.Repeat(" ", pad)
 		}
@@ -106,7 +114,7 @@ func Highlight(path string) error {
 
 // Missing keys will be set to `NONE`
 func highlightGroupMap(name string, args map[string]string) string {
-	str := fmt.Sprintf("highlight %s", name)
+	str := fmt.Sprintf(HighLightCommand + " %s", name)
 	for _, group := range HighlightGroups {
 		value := "NONE"
 		for k, v := range args {
